@@ -5,6 +5,15 @@
  * Author : Mohamed Ashrf
  */ 
 
+/*
+this code updating the value of the ICR whenever it enters an overflow inturrept so to generate the full SPWM sine wave
+it's set at a fixed frequancy for now but you can change it by changing the frequancy variable in the code
+you can make it variabe only by reading the value from a potentiometer and map it to your frequancy and your modulation index
+but i will upload it tuned in the future anyway just wating for the hardware to arrive
+*/
+
+
+
 #define bit_get(p,m) ((p) & (m))
 #define bit_set(p,m) ((p) |= (m))
 #define bit_clear(p,m) ((p) &= ~(m))
@@ -132,7 +141,7 @@ OCR1C  = 0;
 while (1) 
 {
 
-	//mod_idx = (380-(7.52*(50-frequancy)))/380;
+	//mod_idx = (380-(7.52*(50-frequancy)))/380;    // to adjust the modulation index
 
 	BASE_icr = floor(((16e6)/(300*frequancy))-1);
 	ICR1=BASE_icr/2;
