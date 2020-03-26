@@ -30,9 +30,6 @@ but i will upload it tuned in the future anyway just wating for the hardware to 
 #define BAUD 9600                               // define baud
 #define BAUDRATE ((F_CPU)/(BAUD*16UL)-1)        // set baud rate value for UBRR
 
-
-// function to initialize UART
-
 void uart_init ()
 {
 	UBRR0H = (BAUDRATE>>8);                      // shift the register right by 8 bits
@@ -94,6 +91,7 @@ int frequancy = 1;
 long long int BASE_icr = 0;
 
 
+// those numbers represent the phase shift of phase A,B,C, 120 deg between each phase 
 long int counter = 300;
 long int counterB = 100;
 long int counterC = 200;
@@ -118,36 +116,42 @@ void action(){
 	}
 }
 
+void Reg_config(){
+	
+	DDRD=0b00001111;  //setting PD0-PD3 as outputs
+	bit_set(DDRF, BIT(0));  // setting ADC0 as input 
+	TCCR1A=0b10101010;   //TIMER1 Fast PWM non invert
+	TCCR1B=0b00011001;   //per-scaler 1
+	TIMSK=0b00000100;   //enabling overflow INT
+
+	
+	OCR1A  = 0;
+	OCR1B  = 0;
+	OCR1C  = 0;
+
+
+	
+}
 
 int main(void){		
-
-
-
-DDRD=0b00001111;  //setting PD0-PD3 as outputs
-
-DDRE=0b00000010;
-TCCR1A=0b10101010;   //TIMER1 Fast PWM non invert
-TCCR1B=0b00011001;   //per-scaler 1
-TIMSK=0b00000100;   //enabling overflow INT
-
-bit_set(PORTD, BIT(2));   //phase increment
-
+bit_set(PORTD, BIT(2));
+Reg_config();
 sei();
-
-
-OCR1A  = 0;
-OCR1B  = 0;
-OCR1C  = 0;
+frequancy = 1;
+mod_idx = 1;
 while (1) 
 {
 
-	//mod_idx = (380-(7.52*(50-frequancy)))/380;    // to adjust the modulation index
-
+	/*            
+	adc_result0 = adc_read(0);
+	frequancy = map( adc_result0, 0, 1023,1,150 )
+	mod_idx = (380-(7.52*(50-frequancy)))/380;				 //this equation is tuned for 380 VL 50 Hz induction motor motor
+	*/
+	
 	BASE_icr = floor(((16e6)/(300*frequancy))-1);
 	ICR1=BASE_icr/2;
-	mod_idx = 1;
-	mod_idx = ICR1*mod_idx;
 
+	mod_idx = ICR1*mod_idx;
 	OCR1A= universal_lookup[counter]*ICR1;
 	OCR1B= universal_lookup[counterB]*ICR1;
 	OCR1C= universal_lookup[counterC]*ICR1;
